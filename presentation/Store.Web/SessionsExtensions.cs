@@ -17,15 +17,10 @@ namespace Store.Web
             using (var stream = new MemoryStream())
             using (var write = new BinaryWriter(stream, Encoding.UTF8,true))
             {
-                write.Write(value.Items.Count);
+                write.Write(value.OrderId);
+                write.Write(value.TotalCount);
+                write.Write(value.TotalPrice);
 
-                foreach(var item in value.Items)
-                {
-                    write.Write(item.Key);
-                    write.Write(item.Value);
-                }
-
-                write.Write(value.Amount);
                 session.Set(key, stream.ToArray());
             }
 
@@ -38,18 +33,15 @@ namespace Store.Web
                 using (var stream = new MemoryStream(buffer))
                 using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
                 {
-                    value = new Cart();
+                    var orderId = reader.ReadInt32();
+                    var totalCount = reader.ReadInt32();
+                    var totalPrice = reader.ReadDecimal();
 
-                    var length = reader.ReadInt32();
-                    for (int i = 0; i < length; i++)
+                    value = new Cart(orderId)
                     {
-                        var bookId = reader.ReadInt32();
-                        var count = reader.ReadInt32();
-
-                        value.Items.Add(bookId, count);
-                    }
-                    value.Amount = reader.ReadDecimal();
-
+                        TotalCount = totalCount,
+                        TotalPrice = totalPrice,
+                    };
                     return true;
                 }
             }
